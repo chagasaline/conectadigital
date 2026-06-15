@@ -244,6 +244,7 @@ if (document.getElementById("trilhaContainer")) {
 }
 
 // ----- AVALIAÇÃO FINAL E CERTIFICADO (certificado.html) -----
+// ----- AVALIAÇÃO FINAL E CERTIFICADO (certificado.html) -----
 if (document.getElementById("certificadoArea")) {
     const userSession = JSON.parse(sessionStorage.getItem("conecta_user"));
     if (!userSession || userSession.tipo !== "participante") {
@@ -289,7 +290,7 @@ if (document.getElementById("certificadoArea")) {
             const modulosNomes = trilhaData.modulos.map(m => m.titulo).join(", ");
 
             let certHTML = `
-                <div id="certificadoWrapper" class="certificado" style="margin-top:20px;">
+                <div id="certificadoWrapper" class="certificado" style="margin-top:20px; background: white; padding: 20px;">
                     <h2>CERTIFICADO DE CONCLUSÃO</h2>
                     <p>O programa <strong>Conecta Digital – Portal de Inclusão Tecnológica</strong> certifica que:</p>
                     <h1>${participante.nome}</h1>
@@ -305,17 +306,35 @@ if (document.getElementById("certificadoArea")) {
                 </div>
             `;
             document.getElementById("certificadoArea").innerHTML = certHTML;
+            
+            // Gerar QR Code
             new QRCode(document.getElementById("qrcode"), { text: codigoUnico, width: 120, height: 120 });
-            document.getElementById("btnImprimirCert").style.display = "block";
+            
+            // Mostrar botão de PDF e garantir que o QR Code seja renderizado antes de capturar
+            const btnPDF = document.getElementById("btnImprimirCert");
+            btnPDF.style.display = "block";
+            
+            // Pequeno delay para o QR Code aparecer
+            setTimeout(() => {
+                btnPDF.addEventListener("click", function() {
+                    const element = document.getElementById("certificadoWrapper");
+                    if (!element) {
+                        alert("Erro: elemento do certificado não encontrado.");
+                        return;
+                    }
+                    // Usar html2pdf com configurações para melhor renderização
+                    html2pdf().from(element).set({
+                        margin: 0.5,
+                        filename: `certificado_${participante.cpf}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, letterRendering: true },
+                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    }).save();
+                });
+            }, 500); // aguarda o QR Code ser desenhado
         });
     }
-
-    document.getElementById("btnImprimirCert").addEventListener("click", () => {
-        const element = document.getElementById("certificadoWrapper");
-        html2pdf().from(element).set({ filename: `certificado_${participante.cpf}.pdf` }).save();
-    });
 }
-
 // ----- ADMIN / RELATÓRIOS (relatorios.html) -----
 if (document.getElementById("statsGrid")) {
     const userSession = JSON.parse(sessionStorage.getItem("conecta_user"));
