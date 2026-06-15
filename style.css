@@ -1,0 +1,226 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f2f6fa;
+    color: #333;
+}
+
+/* Cabeçalho */
+header {
+    background: #0d6efd;
+    color: white;
+    text-align: center;
+    padding: 30px;
+}
+
+header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+header p {
+    font-size: 18px;
+}
+
+/* Menu de navegação */
+nav {
+    background: #084298;
+    text-align: center;
+    padding: 15px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: #ffd43b;
+}
+
+/* Conteúdo principal */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+/* Cartões */
+.card {
+    background: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+.card h3 {
+    color: #0d6efd;
+    margin-bottom: 15px;
+}
+
+.card ul {
+    margin-left: 20px;
+}
+
+.card li {
+    margin: 8px 0;
+}
+
+/* Formulários */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+input,
+select,
+textarea {
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+button {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 14px;
+    margin-top: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #084298;
+}
+
+/* Mensagens do sistema */
+.sucesso {
+    background: #d1e7dd;
+    color: #0f5132;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.erro {
+    background: #f8d7da;
+    color: #842029;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+/* Tabelas e relatórios */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th {
+    background: #0d6efd;
+    color: white;
+    padding: 12px;
+}
+
+table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+/* Certificado */
+.certificado {
+    background: white;
+    border: 8px solid #0d6efd;
+    padding: 40px;
+    text-align: center;
+    border-radius: 15px;
+}
+
+.certificado h2 {
+    color: #0d6efd;
+    margin-bottom: 20px;
+}
+
+.certificado p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+/* Progresso da trilha */
+.progress-bar {
+    background: #e9ecef;
+    border-radius: 20px;
+    height: 20px;
+    margin: 20px 0;
+    overflow: hidden;
+}
+.progress-bar div {
+    background: #0d6efd;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s;
+    border-radius: 20px;
+}
+
+/* Módulos */
+.modulo-card {
+    background: #f8f9fa;
+    border-left: 5px solid #0d6efd;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+}
+.modulo-card iframe {
+    margin-top: 10px;
+    border-radius: 8px;
+}
+
+/* Rodapé */
+footer {
+    background: #084298;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 40px;
+}
+
+/* Responsividade */
+@media (max-width: 700px) {
+    header h1 {
+        font-size: 28px;
+    }
+
+    nav a {
+        display: block;
+        margin: 10px 0;
+    }
+
+    .container {
+        width: 95%;
+    }
+
+    table {
+        font-size: 14px;
+    }
+}

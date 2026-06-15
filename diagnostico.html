@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Digital - Conecta Digital</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<header>
+    <h1>Conecta Digital</h1>
+    <p>Diagnóstico de Conhecimentos Digitais</p>
+</header>
+
+<nav>
+    <a href="index.html">Login</a>
+    <a href="cadastro.html">Cadastro</a>
+    <a href="diagnostico.html">Diagnóstico</a>
+    <a href="cursos.html">Aprendizagem</a>
+    <a href="relatorios.html">Relatórios</a>
+    <a href="certificado.html">Certificado</a>
+</nav>
+
+<section class="container">
+    <div class="card">
+        <h2>Questionário de Autoavaliação Digital</h2>
+        <p>Para cada competência, escolha a nota que melhor representa seu nível atual:</p>
+        <ul style="margin-bottom: 20px;">
+            <li><strong>0</strong> = Não sei utilizar</li>
+            <li><strong>1</strong> = Tenho muita dificuldade</li>
+            <li><strong>2</strong> = Tenho dificuldade</li>
+            <li><strong>3</strong> = Consigo com ajuda</li>
+            <li><strong>4</strong> = Consigo sozinho</li>
+            <li><strong>5</strong> = Tenho domínio completo</li>
+        </ul>
+
+        <form id="diagnosticoForm">
+            <div id="questoesArea"></div>
+            <button type="submit">Salvar Diagnóstico e Gerar Trilha</button>
+        </form>
+        <div id="resultadoDiagnostico" style="margin-top: 20px;"></div>
+    </div>
+
+    <div class="card">
+        <h3>Por que realizar este diagnóstico?</h3>
+        <p>Ele permite identificar suas principais dificuldades e gerar automaticamente uma trilha de estudos personalizada, focada nas áreas que você mais precisa evoluir.</p>
+    </div>
+</section>
+
+<footer>
+    Conecta Digital © 2026 - Sistema de Inclusão Tecnológica
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
