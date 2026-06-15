@@ -224,3 +224,25 @@ footer {
         font-size: 14px;
     }
 }
+
+/* (mantenha todo o seu CSS anterior e acrescente:) */
+
+.tab-btn {
+    background: #e9ecef;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.tab-btn.ativo {
+    background: #0d6efd;
+    color: white;
+}
+.tab-conteudo {
+    display: none;
+}
+.tab-conteudo.ativo {
+    display: block;
+}
