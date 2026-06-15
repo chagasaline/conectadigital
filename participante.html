@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Participante - Conecta Digital</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+<header>
+    <h1>Conecta Digital</h1>
+    <p>Área do Participante</p>
+</header>
+
+<nav id="menuNav"></nav>
+
+<section class="container">
+    <!-- Abas -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button id="tabDiagnosticoBtn" class="tab-btn ativo">Diagnóstico</button>
+        <button id="TabTrilhaBtn" class="tab-btn">Minha Trilha</button>
+        <button id="tabAvaliacaoBtn" class="tab-btn">Avaliação Final</button>
+        <button id="tabCertificadoBtn" class="tab-btn">Certificado</button>
+    </div>
+
+    <!-- Conteúdo das abas -->
+    <div id="conteudoDiagnostico" class="tab-conteudo ativo">
+        <div class="card">
+            <h2>Diagnóstico Digital</h2>
+            <p>Avalie seu nível em cada área (0 a 5):</p>
+            <form id="diagnosticoForm">
+                <div id="questoesArea"></div>
+                <button type="submit">Salvar Diagnóstico e Gerar Trilha</button>
+            </form>
+            <div id="resultadoDiagnostico" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="conteudoTrilha" class="tab-conteudo">
+        <div class="card">
+            <h2>Minha Trilha Personalizada</h2>
+            <div id="trilhaContainer"></div>
+        </div>
+    </div>
+
+    <div id="conteudoAvaliacao" class="tab-conteudo">
+        <div class="card">
+            <h2>Avaliação Final</h2>
+            <p>Após concluir todos os módulos, responda novamente as questões para medir sua evolução.</p>
+            <div id="avaliacaoArea"></div>
+        </div>
+    </div>
+
+    <div id="conteudoCertificado" class="tab-conteudo">
+        <div class="card">
+            <h2>Certificado Digital</h2>
+            <div id="certificadoArea"></div>
+            <button id="btnImprimirCert" style="display: none; background: #28a745;">Salvar / Imprimir PDF</button>
+        </div>
+    </div>
+</section>
+
+<footer>
+    Conecta Digital © 2026 - Sistema de Inclusão Tecnológica
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
