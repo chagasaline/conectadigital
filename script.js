@@ -1,5 +1,5 @@
 // =============================
-// CONECTA DIGITAL - SISTEMA COMPLETO
+// CONECTA DIGITAL - SISTEMA COMPLETO (CORRIGIDO)
 // =============================
 
 // ----- BANCO DE DADOS LOCAL -----
@@ -15,7 +15,7 @@ function salvarDados() {
     localStorage.setItem("avaliacoes", JSON.stringify(avaliacoes));
 }
 
-// Áreas de competência (usadas no diagnóstico e avaliação final)
+// Áreas de competência
 const areas = [
     "Uso de aplicativos no celular",
     "Navegação na internet",
@@ -28,7 +28,6 @@ const areas = [
     "Pesquisa de informações confiáveis"
 ];
 
-// Mapeamento de módulos (conteúdo + vídeo)
 const modulosBase = {
     "Segurança digital": { titulo: "Segurança na Internet", conteudo: "Aprenda a proteger seus dados, usar autenticação em dois fatores e evitar riscos.", video: "https://www.youtube.com/embed/HzJte6YrVws" },
     "Identificação de golpes": { titulo: "Como identificar golpes digitais", conteudo: "Phishing, SMS falsos, e-mails fraudulentos: saiba reconhecer.", video: "https://www.youtube.com/embed/4wGq9C0qjZ0" },
@@ -40,38 +39,74 @@ const modulosBase = {
     "Uso de aplicativos no celular": { titulo: "Introdução a aplicativos", conteudo: "Instalação, permissões, armazenamento, atualizações.", video: "" }
 };
 
-// ----- FUNÇÕES DE AUTENTICAÇÃO -----
-if (document.getElementById("loginForm")) {
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const user = document.getElementById("loginUser").value.trim();
-        const pass = document.getElementById("loginPassword").value;
-        if (user === "admin" && pass === "123456") {
-            sessionStorage.setItem("conecta_user", JSON.stringify({ tipo: "admin", id: "admin" }));
-            window.location.href = "relatorios.html";
-            return;
-        }
-        const participante = participantes.find(p => (p.email === user || p.cpf === user) && p.senha === pass);
-        if (participante) {
-            sessionStorage.setItem("conecta_user", JSON.stringify({ tipo: "participante", id: participante.id }));
-            window.location.href = "diagnostico.html";
-        } else {
-            document.getElementById("loginError").style.display = "block";
-        }
-    });
+// ----- GERENCIAMENTO DE SESSÃO E MENU DINÂMICO -----
+function getSessao() {
+    return JSON.parse(sessionStorage.getItem("conecta_user"));
+}
+
+function setSessao(user) {
+    sessionStorage.setItem("conecta_user", JSON.stringify(user));
+}
+
+function logout() {
+    sessionStorage.removeItem("conecta_user");
+    window.location.href = "index.html";
+}
+
+function verificarSessao(permiteAdmin = false, permiteParticipante = true) {
+    const sessao = getSessao();
+    if (!sessao) {
+        window.location.href = "index.html";
+        return null;
+    }
+    if (sessao.tipo === "admin" && !permiteAdmin) {
+        alert("Acesso apenas para participantes.");
+        window.location.href = "admin.html";
+        return null;
+    }
+    if (sessao.tipo === "participante" && !permiteParticipante) {
+        alert("Acesso apenas para administradores.");
+        window.location.href = "participante.html";
+        return null;
+    }
+    return sessao;
+}
+
+function construirMenu() {
+    const sessao = getSessao();
+    const nav = document.getElementById("menuNav");
+    if (!nav) return;
+    let html = `<a href="index.html">Início</a>`;
+    if (!sessao) {
+        html += `<a href="cadastro.html">Cadastro</a>`;
+    } else if (sessao.tipo === "admin") {
+        html += `<a href="admin.html">Relatórios</a>`;
+        html += `<a href="#" id="logoutLinkAdmin">Sair</a>`;
+    } else if (sessao.tipo === "participante") {
+        html += `<a href="participante.html">Minha Área</a>`;
+        html += `<a href="#" id="logoutLinkPart">Sair</a>`;
+    }
+    nav.innerHTML = html;
+    if (sessao) {
+        const logoutLink = document.getElementById("logoutLinkAdmin") || document.getElementById("logoutLinkPart");
+        if (logoutLink) logoutLink.addEventListener("click", (e) => { e.preventDefault(); logout(); });
+    }
 }
 
 // ----- CADASTRO -----
 if (document.getElementById("cadastroForm")) {
-    // Calcular idade automaticamente
-    document.getElementById("dataNasc").addEventListener("change", function() {
-        const nasc = new Date(this.value);
-        const hoje = new Date();
-        let idade = hoje.getFullYear() - nasc.getFullYear();
-        const mes = hoje.getMonth() - nasc.getMonth();
-        if (mes < 0 || (mes === 0 && hoje.getDate() < nasc.getDate())) idade--;
-        document.getElementById("idade").value = isNaN(idade) ? "" : idade;
-    });
+    // Cálculo de idade
+    const dataNasc = document.getElementById("dataNasc");
+    if (dataNasc) {
+        dataNasc.addEventListener("change", function() {
+            const nasc = new Date(this.value);
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - nasc.getFullYear();
+            const mes = hoje.getMonth() - nasc.getMonth();
+            if (mes < 0 || (mes === 0 && hoje.getDate() < nasc.getDate())) idade--;
+            document.getElementById("idade").value = isNaN(idade) ? "" : idade;
+        });
+    }
 
     document.getElementById("cadastroForm").addEventListener("submit", function(e) {
         e.preventDefault();
@@ -109,21 +144,67 @@ if (document.getElementById("cadastroForm")) {
         alert("Cadastro realizado! Agora faça login com seu CPF ou e-mail.");
         window.location.href = "index.html";
     });
+    construirMenu();
 }
 
-// ----- DIAGNÓSTICO (gerar questões e salvar) -----
-if (document.getElementById("diagnosticoForm")) {
-    // Verificar login participante
-    const userSession = JSON.parse(sessionStorage.getItem("conecta_user"));
-    if (!userSession || userSession.tipo !== "participante") {
-        alert("Você precisa estar logado como participante para acessar esta página.");
-        window.location.href = "index.html";
-    }
-    const participanteId = userSession.id;
-    const participanteAtual = participantes.find(p => p.id === participanteId);
+// ----- LOGIN -----
+if (document.getElementById("loginForm")) {
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const user = document.getElementById("loginUser").value.trim();
+        const pass = document.getElementById("loginPassword").value;
+        if (user === "admin" && pass === "123456") {
+            setSessao({ tipo: "admin", id: "admin" });
+            window.location.href = "admin.html";
+            return;
+        }
+        const participante = participantes.find(p => (p.email === user || p.cpf === user) && p.senha === pass);
+        if (participante) {
+            setSessao({ tipo: "participante", id: participante.id });
+            window.location.href = "participante.html";
+        } else {
+            document.getElementById("loginError").style.display = "block";
+        }
+    });
+}
 
-    // Gerar dinamicamente as questões
-    const container = document.getElementById("questoesArea");
+// ----- ÁREA DO PARTICIPANTE (participante.html) -----
+if (document.getElementById("conteudoDiagnostico")) {
+    const sessao = verificarSessao(false, true);
+    if (!sessao) throw new Error("Sem sessão");
+    const pid = sessao.id;
+    const participanteAtual = participantes.find(p => p.id === pid);
+
+    // Abas
+    const botoes = {
+        diag: document.getElementById("tabDiagnosticoBtn"),
+        trilha: document.getElementById("TabTrilhaBtn"),
+        aval: document.getElementById("tabAvaliacaoBtn"),
+        cert: document.getElementById("tabCertificadoBtn")
+    };
+    const conteudos = {
+        diag: document.getElementById("conteudoDiagnostico"),
+        trilha: document.getElementById("conteudoTrilha"),
+        aval: document.getElementById("conteudoAvaliacao"),
+        cert: document.getElementById("conteudoCertificado")
+    };
+    function ativarAba(aba) {
+        Object.values(botoes).forEach(btn => btn.classList.remove("ativo"));
+        Object.values(conteudos).forEach(cont => cont.classList.remove("ativo"));
+        botoes[aba].classList.add("ativo");
+        conteudos[aba].classList.add("ativo");
+        if (aba === "trilha") carregarTrilha();
+        if (aba === "aval") carregarAvaliacao();
+        if (aba === "cert") carregarCertificado();
+    }
+    botoes.diag.addEventListener("click", () => ativarAba("diag"));
+    botoes.trilha.addEventListener("click", () => ativarAba("trilha"));
+    botoes.aval.addEventListener("click", () => ativarAba("aval"));
+    botoes.cert.addEventListener("click", () => ativarAba("cert"));
+    ativarAba("diag");
+
+    // Diagnóstico
+    const containerQuestoes = document.getElementById("questoesArea");
     areas.forEach((area, idx) => {
         const div = document.createElement("div");
         div.innerHTML = `
@@ -137,7 +218,7 @@ if (document.getElementById("diagnosticoForm")) {
                 <option value="5">5 - Domínio completo</option>
             </select>
         `;
-        container.appendChild(div);
+        containerQuestoes.appendChild(div);
     });
 
     document.getElementById("diagnosticoForm").addEventListener("submit", function(e) {
@@ -153,10 +234,10 @@ if (document.getElementById("diagnosticoForm")) {
         else if (media <= 3.5) nivel = "Possui autonomia básica";
         else nivel = "Possui autonomia avançada";
 
-        diagnosticos[participanteId] = { respostas, media, nivel, data: new Date().toISOString() };
+        diagnosticos[pid] = { respostas, media, nivel, data: new Date().toISOString() };
         salvarDados();
 
-        // Gerar trilha personalizada
+        // Gerar trilha
         let modulosGerados = [];
         areas.forEach((area, idx) => {
             if (respostas[idx] < 3) {
@@ -175,7 +256,7 @@ if (document.getElementById("diagnosticoForm")) {
         if (modulosGerados.length === 0) {
             modulosGerados = [{ titulo: "Revisão de boas práticas", conteudo: "Parabéns! Você já possui boa autonomia. Reforce seus conhecimentos.", video: "" }];
         }
-        trilhas[participanteId] = { modulos: modulosGerados, progresso: [], concluido: false };
+        trilhas[pid] = { modulos: modulosGerados, progresso: [], concluido: false };
         salvarDados();
 
         document.getElementById("resultadoDiagnostico").innerHTML = `
@@ -183,25 +264,16 @@ if (document.getElementById("diagnosticoForm")) {
                 <strong>Diagnóstico salvo!</strong><br>
                 Nível: ${nivel}<br>
                 Média: ${media.toFixed(1)} (0 a 5)<br>
-                Sua trilha personalizada foi gerada. <a href="cursos.html">Clique aqui para acessá-la</a>.
+                Sua trilha personalizada foi gerada. Clique na aba "Minha Trilha".
             </div>
         `;
     });
-}
-
-// ----- TRILHA (cursos.html) -----
-if (document.getElementById("trilhaContainer")) {
-    const userSession = JSON.parse(sessionStorage.getItem("conecta_user"));
-    if (!userSession || userSession.tipo !== "participante") {
-        window.location.href = "index.html";
-    }
-    const pid = userSession.id;
-    const trilhaData = trilhas[pid];
 
     function carregarTrilha() {
+        const trilhaData = trilhas[pid];
         const container = document.getElementById("trilhaContainer");
         if (!trilhaData || !trilhaData.modulos) {
-            container.innerHTML = "<p>Você ainda não realizou o diagnóstico. <a href='diagnostico.html'>Clique aqui para fazer o diagnóstico</a>.</p>";
+            container.innerHTML = "<p>Você ainda não realizou o diagnóstico. Vá para a aba Diagnóstico.</p>";
             return;
         }
         const concluidos = trilhaData.progresso.length;
@@ -216,7 +288,7 @@ if (document.getElementById("trilhaContainer")) {
                     <h3>${mod.titulo} ${feito ? "✅" : ""}</h3>
                     <p>${mod.conteudo}</p>
                     ${mod.video ? `<iframe width="100%" height="200" src="${mod.video}" frameborder="0" allowfullscreen></iframe>` : ""}
-                    ${!feito ? `<button onclick="concluirModulo(${idx})" style="margin-top:10px;">Concluir Módulo</button>` : "<span style='color:green;'>Módulo concluído!</span>"}
+                    ${!feito ? `<button onclick="window.concluirModulo(${idx})" style="margin-top:10px;">Concluir Módulo</button>` : "<span style='color:green;'>Módulo concluído!</span>"}
                 </div>
             `;
         });
@@ -227,8 +299,8 @@ if (document.getElementById("trilhaContainer")) {
             alert("Parabéns! Você concluiu toda a trilha. Agora realize a avaliação final.");
         }
     }
-
     window.concluirModulo = function(idx) {
+        const trilhaData = trilhas[pid];
         if (!trilhaData.progresso.includes(idx)) {
             trilhaData.progresso.push(idx);
             salvarDados();
@@ -236,32 +308,17 @@ if (document.getElementById("trilhaContainer")) {
         }
     };
 
-    document.getElementById("btnIrParaAvaliacao").addEventListener("click", () => {
-        window.location.href = "certificado.html"; // a avaliação final foi colocada na página de certificado para fluxo contínuo
-    });
-
-    carregarTrilha();
-}
-
-// ----- AVALIAÇÃO FINAL E CERTIFICADO (certificado.html) -----
-// ----- AVALIAÇÃO FINAL E CERTIFICADO (certificado.html) -----
-if (document.getElementById("certificadoArea")) {
-    const userSession = JSON.parse(sessionStorage.getItem("conecta_user"));
-    if (!userSession || userSession.tipo !== "participante") {
-        window.location.href = "index.html";
-    }
-    const pid = userSession.id;
-    const participante = participantes.find(p => p.id === pid);
-    const diagnostico = diagnosticos[pid];
-    const trilhaData = trilhas[pid];
-
-    if (!diagnostico) {
-        document.getElementById("certificadoArea").innerHTML = "<p>Você precisa realizar o diagnóstico primeiro. <a href='diagnostico.html'>Ir para diagnóstico</a></p>";
-    } else if (!trilhaData || !trilhaData.concluido) {
-        document.getElementById("certificadoArea").innerHTML = "<p>Você precisa concluir 100% da sua trilha de aprendizagem. <a href='cursos.html'>Voltar para trilha</a></p>";
-    } else {
-        // Exibir formulário de avaliação final
-        let htmlForm = `<h3>Avaliação Final (pós-trilha)</h3><p>Responda novamente as questões para medir sua evolução:</p><form id="avFinalForm">`;
+    function carregarAvaliacao() {
+        const trilhaData = trilhas[pid];
+        if (!trilhaData || !trilhaData.concluido) {
+            document.getElementById("avaliacaoArea").innerHTML = "<p>Você precisa concluir 100% da trilha antes de fazer a avaliação final.</p>";
+            return;
+        }
+        if (avaliacoes[pid]) {
+            document.getElementById("avaliacaoArea").innerHTML = "<p>Você já realizou a avaliação final. Parabéns! Vá para a aba Certificado.</p>";
+            return;
+        }
+        let htmlForm = `<form id="avFinalForm">`;
         areas.forEach((area, idx) => {
             htmlForm += `<label>${area}:</label><select id="aval_${idx}">`;
             for (let i = 0; i <= 5; i++) {
@@ -269,8 +326,8 @@ if (document.getElementById("certificadoArea")) {
             }
             htmlForm += `</select>`;
         });
-        htmlForm += `<button type="submit">Finalizar Avaliação e Gerar Certificado</button></form>`;
-        document.getElementById("certificadoArea").innerHTML = htmlForm;
+        htmlForm += `<button type="submit">Finalizar Avaliação</button></form>`;
+        document.getElementById("avaliacaoArea").innerHTML = htmlForm;
 
         document.getElementById("avFinalForm").addEventListener("submit", function(e) {
             e.preventDefault();
@@ -282,66 +339,66 @@ if (document.getElementById("certificadoArea")) {
             const nivelFinal = mediaFinal > 3.5 ? "Autonomia avançada" : "Autonomia básica";
             avaliacoes[pid] = { respostas: respostasFinais, media: mediaFinal, nivel: nivelFinal, data: new Date().toISOString() };
             salvarDados();
-
-            const mediaInicial = diagnostico.media;
-            const evolPercent = ((mediaFinal - mediaInicial) / 5) * 100;
-            const cargaHoraria = trilhaData.modulos.length * 2;
-            const codigoUnico = btoa(pid + Date.now()).substr(0, 12);
-            const modulosNomes = trilhaData.modulos.map(m => m.titulo).join(", ");
-
-            let certHTML = `
-                <div id="certificadoWrapper" class="certificado" style="margin-top:20px; background: white; padding: 20px;">
-                    <h2>CERTIFICADO DE CONCLUSÃO</h2>
-                    <p>O programa <strong>Conecta Digital – Portal de Inclusão Tecnológica</strong> certifica que:</p>
-                    <h1>${participante.nome}</h1>
-                    <p><strong>CPF:</strong> ${participante.cpf}</p>
-                    <p>Concluiu com êxito a capacitação em inclusão digital, participando das atividades de aprendizagem relacionadas a:</p>
-                    <p><strong>${modulosNomes}</strong></p>
-                    <p><strong>Carga horária:</strong> ${cargaHoraria} horas</p>
-                    <p><strong>Data de emissão:</strong> ${new Date().toLocaleDateString("pt-BR")}</p>
-                    <p><strong>Código único:</strong> ${codigoUnico}</p>
-                    <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0;"></div>
-                    <p>_________________________________<br>Responsável pelo Projeto Conecta Digital</p>
-                    <p><em>Evolução alcançada: ${evolPercent > 0 ? "+" : ""}${evolPercent.toFixed(1)}% de melhoria nas competências digitais.</em></p>
-                </div>
-            `;
-            document.getElementById("certificadoArea").innerHTML = certHTML;
-            
-            // Gerar QR Code
-            new QRCode(document.getElementById("qrcode"), { text: codigoUnico, width: 120, height: 120 });
-            
-            // Mostrar botão de PDF e garantir que o QR Code seja renderizado antes de capturar
-            const btnPDF = document.getElementById("btnImprimirCert");
-            btnPDF.style.display = "block";
-            
-            // Pequeno delay para o QR Code aparecer
-            setTimeout(() => {
-                btnPDF.addEventListener("click", function() {
-                    const element = document.getElementById("certificadoWrapper");
-                    if (!element) {
-                        alert("Erro: elemento do certificado não encontrado.");
-                        return;
-                    }
-                    // Usar html2pdf com configurações para melhor renderização
-                    html2pdf().from(element).set({
-                        margin: 0.5,
-                        filename: `certificado_${participante.cpf}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, letterRendering: true },
-                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                    }).save();
-                });
-            }, 500); // aguarda o QR Code ser desenhado
+            alert("Avaliação final salva! Agora acesse a aba Certificado.");
+            ativarAba("cert");
+            carregarCertificado();
         });
     }
-}
-// ----- ADMIN / RELATÓRIOS (relatorios.html) -----
-if (document.getElementById("statsGrid")) {
-    const userSession = JSON.parse(sessionStorage.getItem("conecta_user"));
-    if (!userSession || userSession.tipo !== "admin") {
-        alert("Acesso restrito a administradores.");
-        window.location.href = "index.html";
+
+    function carregarCertificado() {
+        const trilhaData = trilhas[pid];
+        const diagnosticoData = diagnosticos[pid];
+        const avaliacaoData = avaliacoes[pid];
+        if (!trilhaData || !trilhaData.concluido || !avaliacaoData) {
+            document.getElementById("certificadoArea").innerHTML = "<p>Você precisa concluir a trilha e a avaliação final para emitir o certificado.</p>";
+            document.getElementById("btnImprimirCert").style.display = "none";
+            return;
+        }
+        const mediaInicial = diagnosticoData.media;
+        const mediaFinal = avaliacaoData.media;
+        const evolPercent = ((mediaFinal - mediaInicial) / 5) * 100;
+        const cargaHoraria = trilhaData.modulos.length * 2;
+        const codigoUnico = btoa(pid + Date.now()).substr(0, 12);
+        const modulosNomes = trilhaData.modulos.map(m => m.titulo).join(", ");
+
+        let certHTML = `
+            <div id="certificadoWrapper" class="certificado" style="margin-top:20px;">
+                <h2>CERTIFICADO DE CONCLUSÃO</h2>
+                <p>O programa <strong>Conecta Digital – Portal de Inclusão Tecnológica</strong> certifica que:</p>
+                <h1>${participanteAtual.nome}</h1>
+                <p><strong>CPF:</strong> ${participanteAtual.cpf}</p>
+                <p>Concluiu com êxito a capacitação em inclusão digital, participando das atividades de aprendizagem relacionadas a:</p>
+                <p><strong>${modulosNomes}</strong></p>
+                <p><strong>Carga horária:</strong> ${cargaHoraria} horas</p>
+                <p><strong>Data de emissão:</strong> ${new Date().toLocaleDateString("pt-BR")}</p>
+                <p><strong>Código único:</strong> ${codigoUnico}</p>
+                <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0;"></div>
+                <p>_________________________________<br>Responsável pelo Projeto Conecta Digital</p>
+                <p><em>Evolução alcançada: ${evolPercent > 0 ? "+" : ""}${evolPercent.toFixed(1)}% de melhoria nas competências digitais.</em></p>
+            </div>
+        `;
+        document.getElementById("certificadoArea").innerHTML = certHTML;
+        new QRCode(document.getElementById("qrcode"), { text: codigoUnico, width: 120, height: 120 });
+        document.getElementById("btnImprimirCert").style.display = "block";
     }
+
+    document.getElementById("btnImprimirCert").addEventListener("click", () => {
+        const element = document.getElementById("certificadoWrapper");
+        if (element) {
+            html2pdf().from(element).set({ filename: `certificado_${participanteAtual.cpf}.pdf` }).save();
+        } else {
+            alert("Erro: elemento do certificado não encontrado.");
+        }
+    });
+
+    construirMenu();
+}
+
+// ----- ADMIN (admin.html) -----
+if (document.getElementById("statsGrid")) {
+    const sessao = verificarSessao(true, false);
+    if (!sessao) throw new Error("Acesso negado");
+    construirMenu();
 
     function atualizarDashboard() {
         const total = participantes.length;
@@ -366,7 +423,7 @@ if (document.getElementById("statsGrid")) {
             <div class="card" style="flex:1;">Evolução média: +${(evolMedia*20).toFixed(1)}%</div>
         `;
 
-        // Gráfico faixa etária
+        // Gráficos
         const faixas = {'0-17':0,'18-30':0,'31-50':0,'51+':0};
         participantes.forEach(p => {
             if (p.idade < 18) faixas['0-17']++;
@@ -376,7 +433,6 @@ if (document.getElementById("statsGrid")) {
         });
         new Chart(document.getElementById("faixaEtariaChart"), { type: 'bar', data: { labels: Object.keys(faixas), datasets: [{ label: 'Participantes', data: Object.values(faixas), backgroundColor: '#0d6efd' }] } });
 
-        // Dificuldades
         let dificuldades = [0,0,0,0,0,0,0,0,0];
         participantes.forEach(p => {
             const diag = diagnosticos[p.id];
@@ -386,7 +442,6 @@ if (document.getElementById("statsGrid")) {
         });
         new Chart(document.getElementById("dificuldadesChart"), { type: 'pie', data: { labels: areas, datasets: [{ data: dificuldades, backgroundColor: '#ffc107' }] } });
 
-        // Evolução individual
         const evolData = participantes.filter(p => diagnosticos[p.id] && avaliacoes[p.id]).map(p => ({ antes: diagnosticos[p.id].media, depois: avaliacoes[p.id].media }));
         if (evolData.length) {
             new Chart(document.getElementById("evolucaoChart"), { type: 'line', data: { labels: evolData.map((_,i)=>`P${i+1}`), datasets: [{ label: 'Antes (%)', data: evolData.map(e=>e.antes*20), borderColor: '#dc3545' }, { label: 'Depois (%)', data: evolData.map(e=>e.depois*20), borderColor: '#28a745' }] } });
@@ -439,4 +494,9 @@ if (document.getElementById("statsGrid")) {
 
     atualizarDashboard();
     carregarTabelaParticipantes();
+}
+
+// Inicializar menu em páginas que não sejam login ou cadastro
+if (document.getElementById("menuNav") && !document.getElementById("loginForm")) {
+    construirMenu();
 }
